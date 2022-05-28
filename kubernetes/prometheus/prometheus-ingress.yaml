@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: routing-ingress
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    certmanager.k8s.io/cluster-issuer: letsencrypt-prod
+    certmanager.k8s.io/acme-challenge-type: http01
+spec:
+  tls:
+  - hosts:
+    - alertmanager.shapingideas.fyi
+    - prometheus.shapingideas.fyi
+    secretName: tls-key
+  rules:  
+    - host: prometheus.shapingideas.fyi
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: prometheus-server
+            servicePort: 80
+    - host: alertmanager.shapingideas.fyi
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: prometheus-alertmanager
+            servicePort: 80

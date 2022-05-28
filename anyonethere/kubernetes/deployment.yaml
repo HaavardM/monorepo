@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anyonethere
+spec:
+  selector:
+    matchLabels:
+      app: anyonethere
+  template:
+    metadata:
+      labels:
+        app: anyonethere
+    spec:
+      volumes:
+        - name: key-volume
+          configMap:
+            name: pubsub-key
+      containers:
+        - name: anyonethere
+          image: haavardm/anyonethere-api
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "10Mi"
+              cpu: "5m"
+          volumeMounts:
+            - name: key-volume
+              mountPath: /etc/config
+          env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /etc/config/key.json
+          ports:
+            - containerPort: 3030
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: anyonethere
+spec:
+  selector:
+    app: anyonethere
+  ports:
+    - port: 80
+      targetPort: 3030
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: anyonethere
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  labels:
+    name: anyonethere
+spec:
+  tls:
+    - hosts:
+        - anyonethere.shapingideas.fyi
+      secretName: anyonethere-tls
+  rules:
+    - host: anyonethere.shapingideas.fyi
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: anyonethere
+                port:
+                  number: 80

@@ -1,0 +1,24 @@
+## nginx configuration
+## Ref: https://github.com/kubernetes/ingress-nginx/blob/master/controllers/nginx/configuration.md
+##
+controller:
+  hostPort:
+    enabled: true
+    ports:
+      http: 80
+      https: 443
+
+  ## by the service. If disable, the status field reports the IP address of the
+  ## node or nodes where an ingress controller pod is running.
+  publishService:
+    enabled: false
+
+  ## DaemonSet or Deployment
+  ##
+  kind: DaemonSet
+
+  nodeSelector:
+    ingress: "true"
+
+  service:
+    enabled: false
